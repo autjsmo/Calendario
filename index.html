@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Villani - Calendario ore</title>
+
+  <!-- Colore della barra di stato del browser/telefono -->
+  <meta name="theme-color" content="#4e9cf6" />
+  
+  <!-- File necessario per Android per capire che è un'app -->
+  <link rel="manifest" href="./manifest.json" />
+
+  <!-- Icona per iPhone/iPad -->
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+
+  <!-- Stile aggiornato -->
+  <link rel="stylesheet" href="./style.css?v=50" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-circle hidden" aria-hidden="true"></div>
+    <div class="header-center">
+      <h1>Villani</h1>
+      <div class="subtitle">Impianti</div>
+      <div class="subtitle-small">Calendario ore</div>
+    </div>
+    <div class="header-circle hidden" aria-hidden="true"></div>
+  </header>
+
+  <main>
+    <div class="calendar-shell">
+      <div class="cal-top">
+        <button id="prevMonth" class="cal-nav" type="button">‹</button>
+        <div id="monthLabel" class="cal-month"></div>
+        <button id="nextMonth" class="cal-nav" type="button">›</button>
+      </div>
+      <div id="monthTotal" class="cal-total-centered"></div>
+
+      <div class="cal-weekdays">
+        <div>LUN</div><div>MAR</div><div>MER</div><div>GIO</div><div>VEN</div><div>SAB</div><div>DOM</div>
+      </div>
+
+      <div id="calendarGrid" class="cal-grid"></div>
+    </div>
+  </main>
+
+  <div id="hoursModalOverlay" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="hoursModalTitle">Ore</h3>
+      <div class="deriv-spinner">
+        <button id="hoursDown" class="deriv-arrow" type="button">˅</button>
+        <div id="hoursValue" class="deriv-value">8</div>
+        <button id="hoursUp" class="deriv-arrow" type="button">˄</button>
+      </div>
+      <div class="modal-actions">
+        <button id="hoursCancel" class="btn secondary" type="button">Annulla</button>
+        <button id="hoursOk" class="btn primary" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logica App -->
+  <script src="./app.js?v=50"></script>
+
+  <!-- Registrazione Service Worker (NECESSARIO per l'installazione) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('SW registrato'))
+          .catch((err) => console.error('Errore SW:', err));
+      });
+    }
+  </script>
+</body>
+</html>

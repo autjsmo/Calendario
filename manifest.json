@@ -1,0 +1,21 @@
+{
+  "name": "Villani Impianti",
+  "short_name": "Villani",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f2f2f6",
+  "theme_color": "#4e9cf6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
