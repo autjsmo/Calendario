@@ -1,4 +1,4 @@
-const CACHE_NAME = 'villani-app-v3';
+const CACHE_NAME = 'villani-app-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -20,7 +20,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
     )
   );
   self.clients.claim();
@@ -28,5 +28,5 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+  e.respondWith(caches.match(e.request).then((response) => response || fetch(e.request)));
 });
