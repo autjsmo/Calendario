@@ -5,16 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Villani - Calendario ore</title>
 
-  <!-- Colore della barra di stato del browser/telefono -->
   <meta name="theme-color" content="#4e9cf6" />
-  
-  <!-- File necessario per Android per capire che è un'app -->
   <link rel="manifest" href="./manifest.json" />
-
-  <!-- Icona per iPhone/iPad: versione blu piena -->
   <link rel="apple-touch-icon" href="./icon/icon-180.png" />
-
-  <!-- Stile aggiornato -->
   <link rel="stylesheet" href="./style.css?v=50" />
 </head>
 <body>
@@ -60,10 +53,7 @@
     </div>
   </div>
 
-  <!-- Logica App -->
   <script src="./app.js?v=50"></script>
-
-  <!-- Registrazione Service Worker (NECESSARIO per l'installazione) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
