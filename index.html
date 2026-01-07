@@ -3,23 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Calendario</title>
+  <title>Villani - Calendario ore</title>
 
-  <!-- Colore barra di stato -->
-  <meta name="theme-color" content="#1a73e8" />
+  <!-- Colore della barra di stato del browser/telefono -->
+  <meta name="theme-color" content="#4e9cf6" />
   
-  <!-- Manifest per la WebApp -->
+  <!-- File necessario per Android per capire che è un'app -->
   <link rel="manifest" href="./manifest.json" />
 
-  <!-- Icona per iOS -->
-  <link rel="apple-touch-icon" href="./icon/icon-192.png" />
+  <!-- Icona per iPhone/iPad (versione piena blu consigliata 180x180) -->
+  <link rel="apple-touch-icon" href="./icon/icon-180.png" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="./style.css?v=70" />
+  <!-- Stile aggiornato -->
+  <link rel="stylesheet" href="./style.css?v=50" />
 </head>
 <body>
   <header class="app-header">
-    <!-- Ho rimesso i div nascosti originali per mantenere il titolo centrato, SENZA bottoni -->
     <div class="header-circle hidden" aria-hidden="true"></div>
     <div class="header-center">
       <h1>Villani</h1>
@@ -61,22 +60,16 @@
     </div>
   </div>
 
-  <script src="./app.js?v=70"></script>
+  <!-- Logica App -->
+  <script src="./app.js?v=50"></script>
+
+  <!-- Registrazione Service Worker (NECESSARIO per l'installazione) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => {
-             // Gestione reload automatico se c'è nuova versione
-             reg.addEventListener('updatefound', () => {
-               const newWorker = reg.installing;
-               newWorker.addEventListener('statechange', () => {
-                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                   window.location.reload(); 
-                 }
-               });
-             });
-          });
+          .then(() => console.log('SW registrato'))
+          .catch((err) => console.error('Errore SW:', err));
       });
     }
   </script>
