@@ -28,5 +28,5 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then((response) => response || fetch(e.request)));
+  e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
 });
