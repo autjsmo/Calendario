@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Villani - Calendario ore</title>
+  <title>Calendario</title>
 
-  <!-- Colore della barra di stato del browser/telefono -->
-  <meta name="theme-color" content="#4e9cf6" />
+  <!-- Colore barra di stato (Blu scuro) -->
+  <meta name="theme-color" content="#1a73e8" />
   
-  <!-- File necessario per Android per capire che è un'app -->
+  <!-- Manifest -->
   <link rel="manifest" href="./manifest.json" />
 
-  <!-- Icona per iPhone/iPad -->
-  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <!-- Icona per iOS -->
+  <link rel="apple-touch-icon" href="./icon/icon-192.png" />
 
-  <!-- Stile aggiornato -->
-  <link rel="stylesheet" href="./style.css?v=50" />
+  <!-- CSS con versione aggiornata -->
+  <link rel="stylesheet" href="./style.css?v=60" />
 </head>
 <body>
   <header class="app-header">
@@ -25,7 +25,10 @@
       <div class="subtitle">Impianti</div>
       <div class="subtitle-small">Calendario ore</div>
     </div>
-    <div class="header-circle hidden" aria-hidden="true"></div>
+    <!-- Bottone in alto a destra (Fab) con link all'immagine blu -->
+    <button id="fabHeader" class="fab-header" aria-label="Aggiungi">
+        <img src="https://i.ibb.co/3WNG33L/plug-blue.png" alt="" class="fab-icon-img" />
+    </button>
   </header>
 
   <main>
@@ -45,6 +48,7 @@
     </div>
   </main>
 
+  <!-- Modale Ore -->
   <div id="hoursModalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3 id="hoursModalTitle">Ore</h3>
@@ -60,16 +64,25 @@
     </div>
   </div>
 
-  <!-- Logica App -->
-  <script src="./app.js?v=50"></script>
-
-  <!-- Registrazione Service Worker (NECESSARIO per l'installazione) -->
+  <script src="./app.js?v=60"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
+        // Registrazione SW
         navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('SW registrato'))
-          .catch((err) => console.error('Errore SW:', err));
+          .then(reg => {
+             // Gestione aggiornamento immediato
+             reg.addEventListener('updatefound', () => {
+               const newWorker = reg.installing;
+               newWorker.addEventListener('statechange', () => {
+                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                   // Nuova versione disponibile -> ricarica
+                   window.location.reload(); 
+                 }
+               });
+             });
+          })
+          .catch(console.error);
       });
     }
   </script>
