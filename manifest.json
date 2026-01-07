@@ -1,22 +1,24 @@
 {
-  "name": "Villani Impianti",
-  "short_name": "Villani",
+  "name": "Calendario",
+  "short_name": "Calendario",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f2f2f6",
-  "theme_color": "#4e9cf6",
+  "background_color": "#1a73e8",
+  "theme_color": "#1a73e8",
   "orientation": "portrait",
   "icons": [
     {
       "src": "icon/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "icon/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ]
 }
