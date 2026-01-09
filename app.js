@@ -145,7 +145,7 @@
         cell.appendChild(badge);
       }
 
-      cell.onclick = () => onDayClick(dateStr);
+      attachDayHandlers(cell, dateStr);
       grid.appendChild(cell);
     }
   }
@@ -158,6 +158,33 @@
     } else {
       openModal(dateStr, entry);
     }
+  }
+
+  // Pressione prolungata: azzera la cella
+  function onDayLongPress(dateStr) {
+    setEntry(dateStr, null);
+    render();
+  }
+
+  function attachDayHandlers(cell, dateStr) {
+    let timer = null;
+    let longDone = false;
+    const start = () => {
+      longDone = false;
+      timer = setTimeout(() => {
+        longDone = true;
+        onDayLongPress(dateStr);
+      }, 550);
+    };
+    const clear = (triggerClick) => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (triggerClick && !longDone) onDayClick(dateStr);
+    };
+    cell.addEventListener('pointerdown', start);
+    cell.addEventListener('pointerup', () => clear(true));
+    cell.addEventListener('pointerleave', () => clear(false));
+    cell.addEventListener('pointercancel', () => clear(false));
   }
 
   function openModal(dStr, entry) {
@@ -178,7 +205,6 @@
         enableHours(false);
       }
     } else {
-      // Fallback: solo ore
       valEl.textContent = entry?.value ?? 8;
       enableHours(true);
     }
@@ -212,7 +238,6 @@
     }
   }
 
-  // Eventi Modale
   upBtn?.addEventListener('click', () => { valEl.textContent = Number(valEl.textContent) + 1; });
   downBtn?.addEventListener('click', () => { valEl.textContent = Math.max(0, Number(valEl.textContent) - 1); });
 
