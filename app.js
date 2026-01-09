@@ -5,7 +5,7 @@
   const HOLIDAYS = (() => {
     const map = {};
     for (const y of YEARS) {
-      map[`${y}-01-01`] = 'Capodanno';
+      map[`${y}-01-01`] = 'Capodanno'; // Scritta più lunga
       map[`${y}-01-06`] = 'Epifania';
       map[`${y}-04-25`] = 'Liberaz.';
       map[`${y}-05-01`] = 'Lavoro';
@@ -47,203 +47,130 @@
     try { state = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { state = {}; }
   }
   function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
-
   const ymd = (y,m,d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   const daysInMonth = (y,m) => new Date(y, m+1, 0).getDate();
   const firstDayIdx = (y,m) => (new Date(y,m,1).getDay() + 6) % 7;
-
-  // Long press timing
-  const LONG_PRESS_MS = 600;
-
-  function showModal(date, initial = 8){
-    editingDate = date;
-    modal.classList.remove('hidden');
-    valEl.textContent = String(initial);
-  }
-  function hideModal(){
-    editingDate = null;
-    modal.classList.add('hidden');
-  }
-
-  upBtn?.addEventListener('click', () => {
-    const v = Math.min(24, Number(valEl.textContent) + 1);
-    valEl.textContent = String(v);
-  });
-  downBtn?.addEventListener('click', () => {
-    const v = Math.max(0, Number(valEl.textContent) - 1);
-    valEl.textContent = String(v);
-  });
-  okBtn?.addEventListener('click', () => {
-    if (!editingDate) return hideModal();
-    const v = Number(valEl.textContent);
-    if (Number.isFinite(v) && v > 0) {
-      state[editingDate] = v;
-    } else {
-      delete state[editingDate];
-    }
-    saveState();
-    hideModal();
-    render();
-  });
-  cancelBtn?.addEventListener('click', () => {
-    hideModal();
-  });
-
-  function handleClick(date) {
-    const val = state[date];
-    if (typeof val === 'number') {
-      // edit existing numeric hours
-      showModal(date, val);
-    } else {
-      // empty or special -> set 8 hours
-      state[date] = 8;
-      saveState();
-      render();
-    }
-  }
-
-  function handleLongPressCycle(date) {
-    const current = state[date];
-    // cycle: undefined -> 'ferie' -> 'permes' -> undefined
-    if (current === undefined) {
-      state[date] = 'ferie';
-    } else if (current === 'ferie') {
-      state[date] = 'permes';
-    } else {
-      // if numeric or 'permes' -> clear
-      delete state[date];
-    }
-    saveState();
-    render();
-  }
-
-  function createCell(elDate, dayNum, isEmpty=false) {
-    const cell = document.createElement('div');
-    cell.className = 'cal-cell';
-    if (isEmpty) cell.classList.add('empty');
-
-    cell.dataset.date = elDate;
-
-    const top = document.createElement('div');
-    top.className = 'cell-daynum';
-    top.textContent = dayNum ? String(dayNum) : '';
-    const content = document.createElement('div');
-    content.className = 'cell-content';
-
-    const dateLabel = document.createElement('div');
-    dateLabel.className = 'cell-label';
-    dateLabel.appendChild(top);
-    dateLabel.appendChild(content);
-    cell.appendChild(dateLabel);
-
-    const val = state[elDate];
-
-    if (val === 'ferie') {
-      content.textContent = 'Ferie';
-      cell.classList.add('vacation');
-    } else if (val === 'permes') {
-      content.textContent = 'Permes.';
-      cell.classList.add('perm');
-    } else if (typeof val === 'number') {
-      content.textContent = `${val} h`;
-      cell.classList.add('hours');
-    } else {
-      content.textContent = '';
-    }
-
-    // pointer-based longpress handling (works for mouse/touch)
-    let pressTimer = null;
-    let longPressed = false;
-
-    const startPress = (ev) => {
-      ev.preventDefault?.();
-      longPressed = false;
-      pressTimer = setTimeout(() => {
-        longPressed = true;
-        handleLongPressCycle(elDate);
-      }, LONG_PRESS_MS);
-    };
-    const cancelPress = (ev) => {
-      if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-      if (!longPressed) {
-        handleClick(elDate);
-      }
-    };
-
-    // support pointer events if available
-    cell.addEventListener('pointerdown', startPress);
-    cell.addEventListener('pointerup', cancelPress);
-    cell.addEventListener('pointercancel', cancelPress);
-    // also fallback for touch/mouse (in case pointer not supported)
-    cell.addEventListener('touchstart', startPress);
-    cell.addEventListener('touchend', cancelPress);
-    cell.addEventListener('mousedown', startPress);
-    cell.addEventListener('mouseup', cancelPress);
-
-    // prevent context menu on long press
-    cell.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    return cell;
-  }
 
   function render(){
     grid.innerHTML = '';
     const date = new Date(viewYear, viewMonth, 1);
     monthLabel.textContent = date.toLocaleString('it-IT', { month:'long', year:'numeric' });
-
+    
     let tot = 0;
     const days = daysInMonth(viewYear, viewMonth);
-    const startOffset = firstDayIdx(viewYear, viewMonth);
+    for(let d=1; d<=days; d++) tot += (state[ymd(viewYear,viewMonth,d)] || 0);
+    monthTotal.textContent = `Totale: ${tot}h`;
 
-    // leading empty cells
-    for (let i=0;i<startOffset;i++){
-      const d = document.createElement('div');
-      d.className = 'cal-cell empty';
-      grid.appendChild(d);
+    const lead = firstDayIdx(viewYear, viewMonth);
+
+    // Empty start
+    for(let i=0; i<lead; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-cell empty';
+      grid.appendChild(el);
     }
 
-    for (let d=1; d<=days; d++){
-      const key = ymd(viewYear, viewMonth, d);
-      const cell = createCell(key, d, false);
-      const v = state[key];
-      if (typeof v === 'number') tot += v;
-      // holiday label, today marker etc. (keep possible existing decorations)
-      if (HOLIDAYS[key]) {
+    // Days
+    for(let d=1; d<=days; d++){
+      const dateStr = ymd(viewYear, viewMonth, d);
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      
+      // Today check: SOLO classe al contenitore
+      const t = new Date();
+      if(t.getFullYear()===viewYear && t.getMonth()===viewMonth && t.getDate()===d){
+        cell.classList.add('cal-today');
+      }
+
+      // Top Row (Number)
+      const topRow = document.createElement('div');
+      topRow.className = 'cal-toprow';
+      const daySpan = document.createElement('div');
+      daySpan.className = 'cal-day';
+      daySpan.textContent = d;
+      topRow.appendChild(daySpan);
+      cell.appendChild(topRow);
+
+      // Holiday
+      if(HOLIDAYS[dateStr]){
         const badge = document.createElement('div');
-        badge.className = 'holiday-badge';
-        badge.textContent = HOLIDAYS[key];
+        badge.className = 'cal-pill holiday';
+        badge.textContent = HOLIDAYS[dateStr];
         cell.appendChild(badge);
       }
+
+      // Hours
+      const val = state[dateStr];
+      if(val !== undefined && val > 0){
+        const badge = document.createElement('div');
+        badge.className = 'cal-pill hours';
+        badge.textContent = val;
+        cell.appendChild(badge);
+      }
+
+      // Gestione Click
+      cell.onclick = () => onDayClick(dateStr);
       grid.appendChild(cell);
     }
-
-    monthTotal.textContent = `${tot} h`;
   }
 
-  function gotoMonth(y,m){
-    viewYear = y; viewMonth = m;
-    render();
+  // NUOVA LOGICA CLICK
+  function onDayClick(dateStr){
+    const val = state[dateStr];
+    // Se è vuoto o 0 -> imposta 8 subito e salva
+    if(!val || val === 0){
+      state[dateStr] = 8;
+      saveState();
+      render();
+    } else {
+      // Se c'è già un valore -> apre modale
+      openModal(dateStr, val);
+    }
   }
 
-  prevBtn?.addEventListener('click', () => {
-    if (viewMonth === 0) { viewMonth = 11; viewYear -= 1; }
-    else viewMonth -= 1;
-    render();
-  });
-  nextBtn?.addEventListener('click', () => {
-    if (viewMonth === 11) { viewMonth = 0; viewYear += 1; }
-    else viewMonth += 1;
-    render();
-  });
+  function openModal(dStr, val){
+    editingDate = dStr;
+    const [y,m,d] = dStr.split('-');
+    modalTitle.textContent = `${d}/${m}`;
+    valEl.textContent = val;
+    modal.classList.remove('hidden');
+  }
 
-  // init
+  function closeModal(){
+    modal.classList.add('hidden');
+    editingDate = null;
+  }
+
+  // Eventi Modale
+  upBtn.onclick = () => { valEl.textContent = Number(valEl.textContent)+1; };
+  downBtn.onclick = () => { valEl.textContent = Math.max(0, Number(valEl.textContent)-1); };
+  
+  okBtn.onclick = () => {
+    if(!editingDate) return;
+    const v = Number(valEl.textContent);
+    if(v > 0) state[editingDate] = v;
+    else delete state[editingDate];
+    saveState();
+    render();
+    closeModal();
+  };
+  cancelBtn.onclick = closeModal;
+  modal.onclick = (e) => { if(e.target===modal) closeModal(); };
+
+  prevBtn.onclick = () => {
+    viewMonth--; 
+    if(viewMonth<0){ viewMonth=11; viewYear--; }
+    render();
+  };
+  nextBtn.onclick = () => {
+    viewMonth++;
+    if(viewMonth>11){ viewMonth=0; viewYear++; }
+    render();
+  };
+
   loadState();
   const now = new Date();
   viewYear = now.getFullYear();
   viewMonth = now.getMonth();
   render();
-
 })();
