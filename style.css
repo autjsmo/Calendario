@@ -9,6 +9,7 @@
   --holiday:#37b19a;
   --ferie:#2ecc71;
   --permesso:#f59e0b;
+  --disabled:#b0b0b0;
   --font-system:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
 }
 
@@ -22,7 +23,6 @@ html,body{
 
 body{ display:flex; flex-direction:column; }
 
-/* HEADER */
 .app-header{
   padding:8px 16px; background:#fff;
   display:flex; align-items:center; justify-content:space-between;
@@ -34,10 +34,8 @@ body{ display:flex; flex-direction:column; }
 .subtitle-small{ font-size:10px; color:var(--muted); }
 .header-circle{ width:32px; height:32px; visibility:hidden; }
 
-/* MAIN */
 main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 
-/* TOP BAR CALENDARIO */
 .calendar-shell{ background:transparent; }
 
 .cal-top{
@@ -60,14 +58,12 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
   margin-bottom:12px;
 }
 
-/* WEEKDAYS */
 .cal-weekdays{
   display:grid; grid-template-columns:repeat(7, 1fr);
   text-align:center; margin-bottom:6px;
 }
 .cal-weekdays > div{ font-size:11px; font-weight:600; color:#888; }
 
-/* GRIGLIA */
 #calendarGrid{
   display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;
 }
@@ -85,7 +81,6 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 }
 .cal-cell.empty{ background:transparent; box-shadow:none; }
 
-/* STILE OGGI */
 .cal-cell.cal-today{
   background-color: #fff;
   border: 2px solid var(--primary);
@@ -93,14 +88,12 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 }
 .cal-day{
   font-size:14px; font-weight:600; color:#333;
-  width:auto; height:auto; background:transparent !important;
 }
 .cal-today .cal-day {
   color: var(--primary) !important;
   font-weight: 700;
 }
 
-/* PILLOLE */
 .cal-pill.holiday{
   background:var(--holiday); color:#fff;
   font-size:9px; font-weight:500;
@@ -131,17 +124,47 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
   width:100%; display:block;
 }
 
-/* CLICK */
 .cal-cell:active{ transform:scale(0.98); }
 
-/* MODAL */
 .modal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px; }
 .modal.hidden{ display:none !important; }
 .modal-card{ width:100%; max-width:320px; background:#fff; border-radius:12px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
-.modal-card h3{ margin:0 0 20px; font-size:18px; text-align:center; }
-.deriv-spinner{ display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.modal-card h3{ margin:0 0 16px; font-size:18px; text-align:center; }
+
+.type-group{
+  display:flex; gap:8px; margin-bottom:16px;
+}
+.type-chip{
+  flex:1;
+  display:flex; align-items:center; justify-content:center;
+  gap:6px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#fafafa;
+  cursor:pointer;
+  font-weight:600;
+  color:#444;
+}
+.type-chip input{ display:none; }
+.type-chip.active{
+  border-color:var(--primary);
+  background:var(--primary-soft);
+  color:var(--primary);
+}
+.type-chip .dot{
+  width:10px; height:10px; border-radius:50%;
+}
+.dot.hours{ background:var(--primary); }
+.dot.ferie{ background:var(--ferie); }
+.dot.permesso{ background:var(--permesso); }
+
+.deriv-spinner{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
 .deriv-value{ font-size:48px; font-weight:700; color:var(--primary); }
+.deriv-value.disabled{ color:var(--disabled); }
 .deriv-arrow{ width:50px; height:50px; border-radius:50%; background:#f0f7ff; color:var(--primary); border:none; font-size:24px; font-weight:bold; }
+.deriv-arrow:disabled{ opacity:0.35; cursor:not-allowed; }
+
 .modal-actions{ display:flex; gap:10px; }
 .btn{ flex:1; padding:12px; border-radius:8px; border:none; font-weight:600; font-size:16px; }
 .btn.primary{ background:var(--primary); color:#fff; }
