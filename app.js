@@ -2,11 +2,7 @@
   const LS_KEY = 'villani_hours_v2';
   const YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
 
-  const ENTRY_TYPES = {
-    HOURS: 'hours',
-    FERIE: 'ferie',
-    PERMESSO: 'permesso'
-  };
+  const ENTRY_TYPES = { HOURS: 'hours', FERIE: 'ferie', PERMESSO: 'permesso' };
 
   const HOLIDAYS = (() => {
     const map = {};
@@ -45,13 +41,14 @@
   const okBtn = document.getElementById('hoursOk');
   const cancelBtn = document.getElementById('hoursCancel');
 
-  // Tipologia
-  const typeRadios = document.getElementById('entryTypeGroup'); // container
+  // Tipologia (UI opzionale, fallback se manca)
+  const typeRadios = document.getElementById('entryTypeGroup');
   const typeInputs = {
     [ENTRY_TYPES.HOURS]: document.getElementById('typeHours'),
     [ENTRY_TYPES.FERIE]: document.getElementById('typeFerie'),
     [ENTRY_TYPES.PERMESSO]: document.getElementById('typePermesso')
   };
+  const hasTypeUI = !!typeRadios;
 
   let state = {};
   let viewYear, viewMonth;
@@ -153,7 +150,6 @@
     }
   }
 
-  // CLICK breve: se vuoto -> 8h, altrimenti apre modale; long-press rimosso
   function onDayClick(dateStr) {
     const entry = normalizeEntry(state[dateStr]);
     if (!entry || entry.kind !== ENTRY_TYPES.HOURS) {
@@ -169,17 +165,22 @@
     const [y, m, d] = dStr.split('-');
     modalTitle.textContent = `${d}/${m}`;
 
-    // preset tipo
-    const kind = entry?.kind || ENTRY_TYPES.HOURS;
-    typeInputs[kind].checked = true;
+    if (hasTypeUI) {
+      const kind = entry?.kind || ENTRY_TYPES.HOURS;
+      if (typeInputs[kind]) typeInputs[kind].checked = true;
+      syncChipsUI();
 
-    // preset ore
-    if (kind === ENTRY_TYPES.HOURS) {
+      if (kind === ENTRY_TYPES.HOURS) {
+        valEl.textContent = entry?.value ?? 8;
+        enableHours(true);
+      } else {
+        valEl.textContent = 0;
+        enableHours(false);
+      }
+    } else {
+      // Fallback: solo ore
       valEl.textContent = entry?.value ?? 8;
       enableHours(true);
-    } else {
-      valEl.textContent = 0;
-      enableHours(false);
     }
 
     modal.classList.remove('hidden');
@@ -192,33 +193,44 @@
 
   function enableHours(enabled) {
     valEl.classList.toggle('disabled', !enabled);
-    upBtn.disabled = !enabled;
-    downBtn.disabled = !enabled;
+    if (upBtn) upBtn.disabled = !enabled;
+    if (downBtn) downBtn.disabled = !enabled;
   }
 
   function getSelectedKind() {
-    if (typeInputs[ENTRY_TYPES.FERIE].checked) return ENTRY_TYPES.FERIE;
-    if (typeInputs[ENTRY_TYPES.PERMESSO].checked) return ENTRY_TYPES.PERMESSO;
+    if (!hasTypeUI) return ENTRY_TYPES.HOURS;
+    if (typeInputs[ENTRY_TYPES.FERIE]?.checked) return ENTRY_TYPES.FERIE;
+    if (typeInputs[ENTRY_TYPES.PERMESSO]?.checked) return ENTRY_TYPES.PERMESSO;
     return ENTRY_TYPES.HOURS;
   }
 
-  // Eventi Modale
-  upBtn.onclick = () => { valEl.textContent = Number(valEl.textContent) + 1; };
-  downBtn.onclick = () => { valEl.textContent = Math.max(0, Number(valEl.textContent) - 1); };
-
-  // Cambio tipo
-  typeRadios.addEventListener('change', () => {
-    const kind = getSelectedKind();
-    if (kind === ENTRY_TYPES.HOURS) {
-      enableHours(true);
-      if (Number(valEl.textContent) === 0) valEl.textContent = 8;
-    } else {
-      enableHours(false);
-      valEl.textContent = 0;
+  function syncChipsUI() {
+    if (!hasTypeUI) return;
+    for (const lab of typeRadios.querySelectorAll('.type-chip')) {
+      const input = lab.querySelector('input');
+      lab.classList.toggle('active', input?.checked);
     }
-  });
+  }
 
-  okBtn.onclick = () => {
+  // Eventi Modale
+  upBtn?.addEventListener('click', () => { valEl.textContent = Number(valEl.textContent) + 1; });
+  downBtn?.addEventListener('click', () => { valEl.textContent = Math.max(0, Number(valEl.textContent) - 1); });
+
+  if (hasTypeUI) {
+    typeRadios.addEventListener('change', () => {
+      syncChipsUI();
+      const kind = getSelectedKind();
+      if (kind === ENTRY_TYPES.HOURS) {
+        enableHours(true);
+        if (Number(valEl.textContent) === 0) valEl.textContent = 8;
+      } else {
+        enableHours(false);
+        valEl.textContent = 0;
+      }
+    });
+  }
+
+  okBtn?.addEventListener('click', () => {
     if (!editingDate) return;
     const kind = getSelectedKind();
     if (kind === ENTRY_TYPES.HOURS) {
@@ -232,9 +244,9 @@
     }
     render();
     closeModal();
-  };
-  cancelBtn.onclick = closeModal;
-  modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+  });
+  cancelBtn?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
   prevBtn.onclick = () => {
     viewMonth--;
