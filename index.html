@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#4e9cf6" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" href="./icon/icon-180.png" />
-  <link rel="stylesheet" href="./style.css?v=50" />
+  <link rel="stylesheet" href="./style.css?v=51" />
 </head>
 <body>
   <header class="app-header">
@@ -41,6 +41,23 @@
   <div id="hoursModalOverlay" class="modal hidden">
     <div class="modal-card">
       <h3 id="hoursModalTitle">Ore</h3>
+
+      <!-- Selettore tipo -->
+      <div id="entryTypeGroup" class="type-group">
+        <label class="type-chip" for="typeHours">
+          <input type="radio" id="typeHours" name="entryType" value="hours" checked />
+          <span class="dot hours"></span><span>Ore</span>
+        </label>
+        <label class="type-chip" for="typeFerie">
+          <input type="radio" id="typeFerie" name="entryType" value="ferie" />
+          <span class="dot ferie"></span><span>Ferie</span>
+        </label>
+        <label class="type-chip" for="typePermesso">
+          <input type="radio" id="typePermesso" name="entryType" value="permesso" />
+          <span class="dot permesso"></span><span>Permes.</span>
+        </label>
+      </div>
+
       <div class="deriv-spinner">
         <button id="hoursDown" class="deriv-arrow" type="button">˅</button>
         <div id="hoursValue" class="deriv-value">8</div>
@@ -53,7 +70,7 @@
     </div>
   </div>
 
-  <script src="./app.js?v=50"></script>
+  <script src="./app.js?v=51"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
