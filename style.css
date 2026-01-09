@@ -7,7 +7,7 @@
   --muted:#8a8a8a;
   --border:#dadce0;
   --holiday:#37b19a;
-  --ferie:#2ecc71;
+  --ferie:var(--holiday); /* stesso verde delle festività */
   --permesso:#f59e0b;
   --disabled:#b0b0b0;
   --font-system:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
@@ -95,7 +95,10 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 .cal-day{
   font-size:14px; font-weight:600; color:#333;
 }
-.cal-today .cal-day { color: var(--primary) !important; font-weight: 700; }
+.cal-today .cal-day {
+  color: var(--primary) !important;
+  font-weight: 700;
+}
 
 /* PILLOLE */
 .cal-pill.holiday{
@@ -115,14 +118,14 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 }
 .cal-pill.ferie{
   background:var(--ferie); color:#fff;
-  font-size:13px; font-weight:700;
+  font-size:9px; font-weight:600;
   border-radius:6px; margin-top:auto;
   padding:4px 0; text-align:center;
   width:100%; display:block;
 }
 .cal-pill.permesso{
   background:var(--permesso); color:#fff;
-  font-size:13px; font-weight:700;
+  font-size:9px; font-weight:600;
   border-radius:6px; margin-top:auto;
   padding:4px 0; text-align:center;
   width:100%; display:block;
