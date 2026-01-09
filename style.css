@@ -86,3 +86,55 @@ main{ flex:1; padding:12px; max-width:600px; margin:0 auto; width:100%; }
 /* --- STILE OGGI (SOLO BORDO) --- */
 .cal-cell.cal-today{
   background-color: #fff; /* Bianco, NO azzurrino */
+  border: 2px solid var(--primary); /* Solo bordo blu */
+  box-shadow: none; /* Nessuna ombra extra */
+}
+
+/* NUMERO GIORNO */
+.cal-toprow{ 
+  display:flex; justify-content:center; margin-bottom:2px; margin-top:2px;
+}
+.cal-day{
+  font-size:14px; font-weight:600; color:#333;
+  width:auto; height:auto; background:transparent !important;
+}
+
+/* Numero oggi: colorato di blu per richiamare il bordo */
+.cal-today .cal-day {
+  color: var(--primary) !important;
+  font-weight: 700;
+}
+
+/* PILLOLE */
+.cal-pill.holiday{
+  background:var(--holiday); color:#fff;
+  font-size:9px; font-weight:500;
+  border-radius:3px; padding:2px 1px;
+  text-align:center; line-height:1.1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  margin-bottom:auto; width:100%;
+}
+
+.cal-pill.hours{
+  background:var(--primary); color:#fff;
+  font-size:14px; font-weight:700;
+  border-radius:6px; margin-top:auto;
+  padding:4px 0; text-align:center;
+  width:100%; display:block;
+}
+
+/* CLICK */
+.cal-cell:active{ transform:scale(0.98); }
+
+/* MODAL */
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal.hidden{ display:none !important; }
+.modal-card{ width:100%; max-width:320px; background:#fff; border-radius:12px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
+.modal-card h3{ margin:0 0 20px; font-size:18px; text-align:center; }
+.deriv-spinner{ display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.deriv-value{ font-size:48px; font-weight:700; color:var(--primary); }
+.deriv-arrow{ width:50px; height:50px; border-radius:50%; background:#f0f7ff; color:var(--primary); border:none; font-size:24px; font-weight:bold; }
+.modal-actions{ display:flex; gap:10px; }
+.btn{ flex:1; padding:12px; border-radius:8px; border:none; font-weight:600; font-size:16px; }
+.btn.primary{ background:var(--primary); color:#fff; }
+.btn.secondary{ background:#eee; color:#333; }
