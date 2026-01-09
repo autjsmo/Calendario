@@ -166,9 +166,11 @@
     render();
   }
 
+  // Gestione pointer con prevenzione del click dopo long-press
   function attachDayHandlers(cell, dateStr) {
     let timer = null;
     let longDone = false;
+
     const start = () => {
       longDone = false;
       timer = setTimeout(() => {
@@ -176,11 +178,13 @@
         onDayLongPress(dateStr);
       }, 550);
     };
+
     const clear = (triggerClick) => {
       if (timer) clearTimeout(timer);
       timer = null;
       if (triggerClick && !longDone) onDayClick(dateStr);
     };
+
     cell.addEventListener('pointerdown', start);
     cell.addEventListener('pointerup', () => clear(true));
     cell.addEventListener('pointerleave', () => clear(false));
