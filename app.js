@@ -45,6 +45,14 @@
   const okBtn = document.getElementById('hoursOk');
   const cancelBtn = document.getElementById('hoursCancel');
 
+  // Tipologia
+  const typeRadios = document.getElementById('entryTypeGroup'); // container
+  const typeInputs = {
+    [ENTRY_TYPES.HOURS]: document.getElementById('typeHours'),
+    [ENTRY_TYPES.FERIE]: document.getElementById('typeFerie'),
+    [ENTRY_TYPES.PERMESSO]: document.getElementById('typePermesso')
+  };
+
   let state = {};
   let viewYear, viewMonth;
   let editingDate = null;
@@ -59,11 +67,11 @@
 
   function normalizeEntry(raw) {
     if (raw === undefined || raw === null) return null;
-    if (typeof raw === 'number') return { kind: ENTRY_TYPES.HOURS, value: raw }; // retrocompatibilità
+    if (typeof raw === 'number') return { kind: ENTRY_TYPES.HOURS, value: raw };
     if (typeof raw === 'object') {
       if (raw.kind === ENTRY_TYPES.HOURS) return { kind: ENTRY_TYPES.HOURS, value: Number(raw.value) || 0 };
-      if (raw.kind === ENTRY_TYPES.FERIE) return { kind: ENTRY_TYPES.FERIE };
-      if (raw.kind === ENTRY_TYPES.PERMESSO) return { kind: ENTRY_TYPES.PERMESSO };
+      if (raw.kind === ENTRY_TYPES.FERIE) return { kind: ENTRY_TYPES.FERIE, value: 0 };
+      if (raw.kind === ENTRY_TYPES.PERMESSO) return { kind: ENTRY_TYPES.PERMESSO, value: 0 };
     }
     return null;
   }
@@ -88,7 +96,6 @@
     monthTotal.textContent = `Totale: ${tot}h`;
 
     const lead = firstDayIdx(viewYear, viewMonth);
-
     for (let i = 0; i < lead; i++) {
       const el = document.createElement('div');
       el.className = 'cal-cell empty';
@@ -141,63 +148,40 @@
         cell.appendChild(badge);
       }
 
-      attachDayHandlers(cell, dateStr);
+      cell.onclick = () => onDayClick(dateStr);
       grid.appendChild(cell);
     }
   }
 
-  // CLICK breve
+  // CLICK breve: se vuoto -> 8h, altrimenti apre modale; long-press rimosso
   function onDayClick(dateStr) {
     const entry = normalizeEntry(state[dateStr]);
     if (!entry || entry.kind !== ENTRY_TYPES.HOURS) {
       setEntry(dateStr, { kind: ENTRY_TYPES.HOURS, value: 8 });
       render();
     } else {
-      openModal(dateStr, entry.value);
+      openModal(dateStr, entry);
     }
   }
 
-  // PRESSIONE PROLUNGATA
-  function onDayLongPress(dateStr) {
-    const entry = normalizeEntry(state[dateStr]);
-    if (entry?.kind === ENTRY_TYPES.FERIE) {
-      setEntry(dateStr, { kind: ENTRY_TYPES.PERMESSO });
-    } else if (entry?.kind === ENTRY_TYPES.PERMESSO) {
-      setEntry(dateStr, null); // torna vuoto
-    } else {
-      setEntry(dateStr, { kind: ENTRY_TYPES.FERIE });
-    }
-    render();
-  }
-
-  function attachDayHandlers(cell, dateStr) {
-    let timer = null;
-    let longDone = false;
-    const start = () => {
-      longDone = false;
-      timer = setTimeout(() => {
-        longDone = true;
-        onDayLongPress(dateStr);
-      }, 550); // durata pressione
-    };
-    const clear = (triggerClick) => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      if (triggerClick && !longDone) onDayClick(dateStr);
-    };
-    cell.addEventListener('pointerdown', start);
-    cell.addEventListener('pointerup', () => clear(true));
-    cell.addEventListener('pointerleave', () => clear(false));
-    cell.addEventListener('pointercancel', () => clear(false));
-  }
-
-  function openModal(dStr, val) {
+  function openModal(dStr, entry) {
     editingDate = dStr;
     const [y, m, d] = dStr.split('-');
     modalTitle.textContent = `${d}/${m}`;
-    valEl.textContent = val;
+
+    // preset tipo
+    const kind = entry?.kind || ENTRY_TYPES.HOURS;
+    typeInputs[kind].checked = true;
+
+    // preset ore
+    if (kind === ENTRY_TYPES.HOURS) {
+      valEl.textContent = entry?.value ?? 8;
+      enableHours(true);
+    } else {
+      valEl.textContent = 0;
+      enableHours(false);
+    }
+
     modal.classList.remove('hidden');
   }
 
@@ -206,14 +190,46 @@
     editingDate = null;
   }
 
+  function enableHours(enabled) {
+    valEl.classList.toggle('disabled', !enabled);
+    upBtn.disabled = !enabled;
+    downBtn.disabled = !enabled;
+  }
+
+  function getSelectedKind() {
+    if (typeInputs[ENTRY_TYPES.FERIE].checked) return ENTRY_TYPES.FERIE;
+    if (typeInputs[ENTRY_TYPES.PERMESSO].checked) return ENTRY_TYPES.PERMESSO;
+    return ENTRY_TYPES.HOURS;
+  }
+
+  // Eventi Modale
   upBtn.onclick = () => { valEl.textContent = Number(valEl.textContent) + 1; };
   downBtn.onclick = () => { valEl.textContent = Math.max(0, Number(valEl.textContent) - 1); };
 
+  // Cambio tipo
+  typeRadios.addEventListener('change', () => {
+    const kind = getSelectedKind();
+    if (kind === ENTRY_TYPES.HOURS) {
+      enableHours(true);
+      if (Number(valEl.textContent) === 0) valEl.textContent = 8;
+    } else {
+      enableHours(false);
+      valEl.textContent = 0;
+    }
+  });
+
   okBtn.onclick = () => {
     if (!editingDate) return;
-    const v = Number(valEl.textContent);
-    if (v > 0) setEntry(editingDate, { kind: ENTRY_TYPES.HOURS, value: v });
-    else setEntry(editingDate, null);
+    const kind = getSelectedKind();
+    if (kind === ENTRY_TYPES.HOURS) {
+      const v = Number(valEl.textContent);
+      if (v > 0) setEntry(editingDate, { kind: ENTRY_TYPES.HOURS, value: v });
+      else setEntry(editingDate, null);
+    } else if (kind === ENTRY_TYPES.FERIE) {
+      setEntry(editingDate, { kind: ENTRY_TYPES.FERIE, value: 0 });
+    } else {
+      setEntry(editingDate, { kind: ENTRY_TYPES.PERMESSO, value: 0 });
+    }
     render();
     closeModal();
   };
