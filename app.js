@@ -166,7 +166,7 @@
     render();
   }
 
-  // Gestione pointer con prevenzione del click dopo long-press
+  // Gestione pointer: se long-press avviene, il rilascio non richiama onDayClick
   function attachDayHandlers(cell, dateStr) {
     let timer = null;
     let longDone = false;
@@ -179,16 +179,21 @@
       }, 550);
     };
 
-    const clear = (triggerClick) => {
+    const end = () => {
       if (timer) clearTimeout(timer);
       timer = null;
-      if (triggerClick && !longDone) onDayClick(dateStr);
+      if (!longDone) onDayClick(dateStr);
+    };
+
+    const cancel = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
     };
 
     cell.addEventListener('pointerdown', start);
-    cell.addEventListener('pointerup', () => clear(true));
-    cell.addEventListener('pointerleave', () => clear(false));
-    cell.addEventListener('pointercancel', () => clear(false));
+    cell.addEventListener('pointerup', end);
+    cell.addEventListener('pointerleave', cancel);
+    cell.addEventListener('pointercancel', cancel);
   }
 
   function openModal(dStr, entry) {
