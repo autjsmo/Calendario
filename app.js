@@ -54,9 +54,6 @@
   const grid = document.getElementById('calendarGrid');
   const monthLabel = document.getElementById('monthLabel');
   const monthTotal = document.getElementById('monthTotal');
-  const monthDays = document.getElementById('monthDays');
-  const monthFerie = document.getElementById('monthFerie');
-  const monthPermessi = document.getElementById('monthPermessi');
   const prevBtn = document.getElementById('prevMonth');
   const nextBtn = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
@@ -147,28 +144,16 @@
     }
 
     let totHours = 0;
-    let workDays = 0;
-    let ferieDays = 0;
-    let permessiDays = 0;
 
     const days = daysInMonth(viewYear, viewMonth);
     for (let d = 1; d <= days; d++) {
       const e = normalizeEntry(state[ymd(viewYear, viewMonth, d)]);
-      if (!e) continue;
-      if (e.kind === ENTRY_TYPES.HOURS && e.value > 0) {
+      if (e?.kind === ENTRY_TYPES.HOURS && e.value > 0) {
         totHours += e.value;
-        workDays++;
-      } else if (e.kind === ENTRY_TYPES.FERIE) {
-        ferieDays++;
-      } else if (e.kind === ENTRY_TYPES.PERMESSO) {
-        permessiDays++;
       }
     }
 
     monthTotal.textContent = `${totHours}h`;
-    if (monthDays) monthDays.textContent = String(workDays);
-    if (monthFerie) monthFerie.textContent = String(ferieDays);
-    if (monthPermessi) monthPermessi.textContent = String(permessiDays);
 
     const lead = firstDayIdx(viewYear, viewMonth);
     for (let i = 0; i < lead; i++) {
@@ -260,57 +245,38 @@
     showToast('Giorno azzerato');
   }
 
-  // Gestione pointer sicura anche durante lo scroll mobile
+  // Gestione pointer: se long-press avviene, il rilascio non richiama onDayClick
   function attachDayHandlers(cell, dateStr) {
     let timer = null;
     let longDone = false;
-    let startX = 0;
-    let startY = 0;
-    let moved = false;
 
-    const clearTimer = () => {
+    const start = () => {
+      longDone = false;
+      if (state[dateStr]) cell.classList.add('pressing');
+      timer = setTimeout(() => {
+        longDone = true;
+        cell.classList.remove('pressing');
+        onDayLongPress(dateStr);
+      }, 550);
+    };
+
+    const end = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      cell.classList.remove('pressing');
+      if (!longDone) onDayClick(dateStr);
+    };
+
+    const cancel = () => {
       if (timer) clearTimeout(timer);
       timer = null;
       cell.classList.remove('pressing');
     };
 
-    const start = (e) => {
-      if (e.button && e.button !== 0) return;
-      longDone = false;
-      moved = false;
-      startX = e.clientX;
-      startY = e.clientY;
-      if (state[dateStr]) {
-        cell.classList.add('pressing');
-      }
-      timer = setTimeout(() => {
-        longDone = true;
-        cell.classList.remove('pressing');
-        onDayLongPress(dateStr);
-      }, 500);
-    };
-
-    const move = (e) => {
-      if (!timer) return;
-      if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
-        moved = true;
-        clearTimer();
-      }
-    };
-
-    const end = () => {
-      const wasActive = !!timer || longDone;
-      clearTimer();
-      if (wasActive && !longDone && !moved) {
-        onDayClick(dateStr);
-      }
-    };
-
     cell.addEventListener('pointerdown', start);
-    cell.addEventListener('pointermove', move);
     cell.addEventListener('pointerup', end);
-    cell.addEventListener('pointerleave', clearTimer);
-    cell.addEventListener('pointercancel', clearTimer);
+    cell.addEventListener('pointerleave', cancel);
+    cell.addEventListener('pointercancel', cancel);
     cell.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

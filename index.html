@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon/icon-192.png" />
   <link rel="apple-touch-icon" href="./icon/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=52" />
+  <link rel="stylesheet" href="./style.css?v=53" />
 </head>
 <body>
   <header class="app-header">
@@ -33,34 +33,22 @@
       <div class="cal-top-card">
         <div class="cal-top">
           <button id="prevMonth" class="cal-nav" type="button" aria-label="Mese precedente">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M14.5 6.5L9 12l5.5 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
           <div class="cal-month-wrap">
             <div id="monthLabel" class="cal-month"></div>
-            <div class="cal-hint">Tocca un giorno per inserire 8h &middot; Tieni premuto per azzerare</div>
+            <div class="total-hours-badge">
+              <span class="total-hours-label">Totale ore</span>
+              <span id="monthTotal" class="total-hours-value">0h</span>
+            </div>
           </div>
           <button id="nextMonth" class="cal-nav" type="button" aria-label="Mese successivo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9.5 6.5L15 12l-5.5 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
-        </div>
-
-        <div class="stats-bar">
-          <div class="stat-pill primary">
-            <span class="stat-label">Totale Ore</span>
-            <span id="monthTotal" class="stat-value">0h</span>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-label">Giorni</span>
-            <span id="monthDays" class="stat-value">0</span>
-          </div>
-          <div class="stat-pill ferie">
-            <span class="stat-label">Ferie</span>
-            <span id="monthFerie" class="stat-value">0</span>
-          </div>
-          <div class="stat-pill permesso">
-            <span class="stat-label">Permessi</span>
-            <span id="monthPermessi" class="stat-value">0</span>
-          </div>
         </div>
       </div>
 
@@ -99,12 +87,20 @@
 
       <div id="hoursControlsWrap" class="hours-controls-wrap">
         <div class="deriv-spinner">
-          <button id="hoursDown" class="deriv-arrow" type="button" aria-label="Diminuisci ore">−</button>
+          <button id="hoursDown" class="deriv-arrow" type="button" aria-label="Diminuisci ore">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <div class="deriv-value-wrap">
             <div id="hoursValue" class="deriv-value">8</div>
             <span class="deriv-unit">ore</span>
           </div>
-          <button id="hoursUp" class="deriv-arrow" type="button" aria-label="Aumenta ore">+</button>
+          <button id="hoursUp" class="deriv-arrow" type="button" aria-label="Aumenta ore">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         <div id="quickPresets" class="quick-presets">
@@ -125,7 +121,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="./app.js?v=52"></script>
+  <script src="./app.js?v=53"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
