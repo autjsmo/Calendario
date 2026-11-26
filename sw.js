@@ -1,15 +1,12 @@
-const CACHE_NAME = 'villani-app-v4';
+const CACHE_NAME = 'villani-app-v5';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=50',
-  './app.js?v=50',
+  './style.css?v=52',
+  './app.js?v=52',
   './manifest.json',
-  './icon/icon-180.png',
   './icon/icon-192.png',
-  './icon/icon-512.png',
-  './icon/icon-192-maskable.png',
-  './icon/icon-512-maskable.png'
+  './icon/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -28,5 +25,18 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+  e.respondWith(
+    caches.match(e.request).then((cached) => {
+      const networkFetch = fetch(e.request)
+        .then((res) => {
+          if (res && res.status === 200 && res.type === 'basic') {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy));
+          }
+          return res;
+        })
+        .catch(() => cached);
+      return cached || networkFetch;
+    })
+  );
 });
