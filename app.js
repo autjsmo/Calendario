@@ -84,6 +84,7 @@
   let viewYear, viewMonth;
   let editingDate = null;
   let toastTimer = null;
+  let lastLongPressTime = 0;
 
   function showToast(msg) {
     if (!toastEl) return;
@@ -132,6 +133,58 @@
     saveState();
   }
 
+  function updateMonthTotal() {
+    let totHours = 0;
+    const days = daysInMonth(viewYear, viewMonth);
+    for (let d = 1; d <= days; d++) {
+      const e = normalizeEntry(state[ymd(viewYear, viewMonth, d)]);
+      if (e?.kind === ENTRY_TYPES.HOURS && e.value > 0) {
+        totHours += e.value;
+      }
+    }
+    monthTotal.textContent = `${totHours}h`;
+  }
+
+  function createEntryBadge(entry) {
+    const badge = document.createElement('div');
+    badge.classList.add('cal-pill', 'entry-pill');
+    switch (entry.kind) {
+      case ENTRY_TYPES.HOURS:
+        badge.classList.add('hours');
+        badge.textContent = `${entry.value}h`;
+        break;
+      case ENTRY_TYPES.FERIE:
+        badge.classList.add('ferie');
+        badge.textContent = 'Ferie';
+        break;
+      case ENTRY_TYPES.PERMESSO:
+        badge.classList.add('permesso');
+        badge.textContent = 'Permesso';
+        break;
+    }
+    return badge;
+  }
+
+  function updateCellBadge(cell, dateStr) {
+    const oldBadge = cell.querySelector('.entry-pill');
+    if (oldBadge) oldBadge.remove();
+    const entry = normalizeEntry(state[dateStr]);
+    if (entry) {
+      cell.appendChild(createEntryBadge(entry));
+    }
+  }
+
+  function triggerCellAnim(cell, className) {
+    cell.classList.remove('cell-added', 'cell-cleared');
+    void cell.offsetWidth;
+    cell.classList.add(className);
+    cell.addEventListener(
+      'animationend',
+      () => cell.classList.remove(className),
+      { once: true }
+    );
+  }
+
   function render(animateGrid = false) {
     grid.innerHTML = '';
     const date = new Date(viewYear, viewMonth, 1);
@@ -143,18 +196,9 @@
       todayBtn.classList.toggle('hidden', isCurrentMonth);
     }
 
-    let totHours = 0;
+    updateMonthTotal();
 
     const days = daysInMonth(viewYear, viewMonth);
-    for (let d = 1; d <= days; d++) {
-      const e = normalizeEntry(state[ymd(viewYear, viewMonth, d)]);
-      if (e?.kind === ENTRY_TYPES.HOURS && e.value > 0) {
-        totHours += e.value;
-      }
-    }
-
-    monthTotal.textContent = `${totHours}h`;
-
     const lead = firstDayIdx(viewYear, viewMonth);
     for (let i = 0; i < lead; i++) {
       const el = document.createElement('div');
@@ -166,10 +210,13 @@
       const dateStr = ymd(viewYear, viewMonth, d);
       const cell = document.createElement('div');
       cell.className = 'cal-cell';
+      cell.dataset.date = dateStr;
 
       const dayOfWeek = (lead + d - 1) % 7; // 0=Lun ... 5=Sab, 6=Dom
-      if (dayOfWeek >= 5) {
-        cell.classList.add('weekend');
+      if (dayOfWeek === 5) {
+        cell.classList.add('saturday');
+      } else if (dayOfWeek === 6) {
+        cell.classList.add('sunday');
       }
 
       if (animateGrid) {
@@ -201,23 +248,7 @@
 
       const entry = normalizeEntry(state[dateStr]);
       if (entry) {
-        const badge = document.createElement('div');
-        badge.classList.add('cal-pill');
-        switch (entry.kind) {
-          case ENTRY_TYPES.HOURS:
-            badge.classList.add('hours');
-            badge.textContent = `${entry.value}h`;
-            break;
-          case ENTRY_TYPES.FERIE:
-            badge.classList.add('ferie');
-            badge.textContent = 'Ferie';
-            break;
-          case ENTRY_TYPES.PERMESSO:
-            badge.classList.add('permesso');
-            badge.textContent = 'Permesso';
-            break;
-        }
-        cell.appendChild(badge);
+        cell.appendChild(createEntryBadge(entry));
       }
 
       attachDayHandlers(cell, dateStr);
@@ -225,58 +256,84 @@
     }
   }
 
-  function onDayClick(dateStr) {
+  function onDayClick(dateStr, cell) {
     const entry = normalizeEntry(state[dateStr]);
     if (!entry) {
       setEntry(dateStr, { kind: ENTRY_TYPES.HOURS, value: 8 });
       navigator.vibrate?.(15);
-      render(false);
+      updateCellBadge(cell, dateStr);
+      updateMonthTotal();
+      triggerCellAnim(cell, 'cell-added');
     } else {
       openModal(dateStr, entry);
     }
   }
 
-  // Pressione prolungata: azzera la cella
-  function onDayLongPress(dateStr) {
+  // Pressione prolungata: azzera la cella con animazione senza distruggere il nodo DOM sotto il dito
+  function onDayLongPress(dateStr, cell) {
     if (!state[dateStr]) return;
     setEntry(dateStr, null);
-    navigator.vibrate?.(35);
-    render(false);
+    navigator.vibrate?.(40);
+    updateCellBadge(cell, dateStr);
+    updateMonthTotal();
+    triggerCellAnim(cell, 'cell-cleared');
     showToast('Giorno azzerato');
   }
 
-  // Gestione pointer: se long-press avviene, il rilascio non richiama onDayClick
   function attachDayHandlers(cell, dateStr) {
     let timer = null;
     let longDone = false;
+    let startX = 0;
+    let startY = 0;
 
-    const start = () => {
+    const stopPress = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      cell.classList.remove('pressing');
+    };
+
+    cell.addEventListener('pointerdown', (e) => {
+      if (e.button && e.button !== 0) return;
       longDone = false;
-      if (state[dateStr]) cell.classList.add('pressing');
-      timer = setTimeout(() => {
-        longDone = true;
-        cell.classList.remove('pressing');
-        onDayLongPress(dateStr);
-      }, 550);
-    };
+      startX = e.clientX;
+      startY = e.clientY;
+      stopPress();
 
-    const end = () => {
-      if (timer) clearTimeout(timer);
-      timer = null;
-      cell.classList.remove('pressing');
-      if (!longDone) onDayClick(dateStr);
-    };
+      if (state[dateStr]) {
+        cell.classList.add('pressing');
+        timer = setTimeout(() => {
+          timer = null;
+          longDone = true;
+          lastLongPressTime = Date.now();
+          cell.classList.remove('pressing');
+          onDayLongPress(dateStr, cell);
+        }, 500);
+      }
+    });
 
-    const cancel = () => {
-      if (timer) clearTimeout(timer);
-      timer = null;
-      cell.classList.remove('pressing');
-    };
+    cell.addEventListener('pointermove', (e) => {
+      if (!timer) return;
+      if (Math.abs(e.clientX - startX) > 20 || Math.abs(e.clientY - startY) > 20) {
+        stopPress();
+      }
+    });
 
-    cell.addEventListener('pointerdown', start);
-    cell.addEventListener('pointerup', end);
-    cell.addEventListener('pointerleave', cancel);
-    cell.addEventListener('pointercancel', cancel);
+    cell.addEventListener('pointerup', stopPress);
+    cell.addEventListener('pointerleave', stopPress);
+    cell.addEventListener('pointercancel', stopPress);
+
+    // Il click nativo gestisce il singolo tocco (inserimento 8h o apertura Menu)
+    cell.addEventListener('click', (e) => {
+      if (longDone || Date.now() - lastLongPressTime < 450) {
+        e.preventDefault();
+        longDone = false;
+        return;
+      }
+      onDayClick(dateStr, cell);
+    });
+
     cell.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -384,24 +441,40 @@
 
   okBtn?.addEventListener('click', () => {
     if (!editingDate) return;
+    const targetDate = editingDate;
     const kind = getSelectedKind();
     if (kind === ENTRY_TYPES.HOURS) {
       const v = Number(valEl.textContent);
-      if (v > 0) setEntry(editingDate, { kind: ENTRY_TYPES.HOURS, value: v });
-      else setEntry(editingDate, null);
+      if (v > 0) setEntry(targetDate, { kind: ENTRY_TYPES.HOURS, value: v });
+      else setEntry(targetDate, null);
     } else if (kind === ENTRY_TYPES.FERIE) {
-      setEntry(editingDate, { kind: ENTRY_TYPES.FERIE, value: 0 });
+      setEntry(targetDate, { kind: ENTRY_TYPES.FERIE, value: 0 });
     } else {
-      setEntry(editingDate, { kind: ENTRY_TYPES.PERMESSO, value: 0 });
+      setEntry(targetDate, { kind: ENTRY_TYPES.PERMESSO, value: 0 });
     }
-    render(false);
+    const cell = grid.querySelector(`.cal-cell[data-date="${targetDate}"]`);
+    if (cell) {
+      updateCellBadge(cell, targetDate);
+      triggerCellAnim(cell, state[targetDate] ? 'cell-added' : 'cell-cleared');
+    } else {
+      render(false);
+    }
+    updateMonthTotal();
     closeModal();
   });
 
   deleteBtn?.addEventListener('click', () => {
     if (!editingDate) return;
-    setEntry(editingDate, null);
-    render(false);
+    const targetDate = editingDate;
+    setEntry(targetDate, null);
+    const cell = grid.querySelector(`.cal-cell[data-date="${targetDate}"]`);
+    if (cell) {
+      updateCellBadge(cell, targetDate);
+      triggerCellAnim(cell, 'cell-cleared');
+    } else {
+      render(false);
+    }
+    updateMonthTotal();
     closeModal();
     showToast('Giorno azzerato');
   });

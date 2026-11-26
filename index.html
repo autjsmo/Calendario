@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <title>Villani - Calendario Ore</title>
 
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="theme-color" content="#4f46e5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon/icon-192.png" />
   <link rel="apple-touch-icon" href="./icon/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=53" />
+  <link rel="stylesheet" href="./style.css?v=54" />
 </head>
 <body>
   <header class="app-header">
@@ -53,7 +53,7 @@
       </div>
 
       <div class="cal-weekdays">
-        <div>LUN</div><div>MAR</div><div>MER</div><div>GIO</div><div>VEN</div><div class="wknd">SAB</div><div class="wknd">DOM</div>
+        <div>LUN</div><div>MAR</div><div>MER</div><div>GIO</div><div>VEN</div><div class="wknd-sat">SAB</div><div class="wknd-sun">DOM</div>
       </div>
 
       <div id="calendarGrid" class="cal-grid"></div>
@@ -121,13 +121,22 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="./app.js?v=53"></script>
+  <script src="./app.js?v=54"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('SW registrato'))
+          .then((reg) => {
+            reg.update();
+          })
           .catch((err) => console.error('Errore SW:', err));
+      });
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
       });
     }
   </script>

@@ -1,9 +1,9 @@
-const CACHE_NAME = 'villani-app-v6';
+const CACHE_NAME = 'villani-app-v7';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=53',
-  './app.js?v=53',
+  './style.css?v=54',
+  './app.js?v=54',
   './manifest.json',
   './icon/icon-192.png',
   './icon/icon-512.png'
